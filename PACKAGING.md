@@ -147,21 +147,15 @@ dist/
 
 Exemple pour GitHub Actions :
 ```yaml
-- name: Install uv
-  run: pip install uv
+ - name: Install uv
+   run: pip install uv
 
-- name: Build package
-  run: uv build
+ - name: Test package
+  run: uv run pytest
 
-- name: Test installation
-  run: python test_install.py
-
-- name: Publish to PyPI
-  run: uv publish dist/*
-  env:
-    UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+ - name: Build package
+   run: uv build
 ```
 
 ---
 
-**Votre package Tych est maintenant prêt pour la distribution avec uv ! 🚀**

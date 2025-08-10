@@ -99,19 +99,6 @@ results = compare_random_generators(n=10000)
 print(f"KS statistic: {results['ks_statistic']}")
 ```
 
-### 3. Tests et exemples
-
-```bash
-# Test simple du package
-python example.py
-
-# Test complet
-python test_package.py
-
-# Installation et tests automatiques
-python install_and_test.py
-```
-
 ## Modules
 
 ### `tych.pendulum`
@@ -275,5 +262,3 @@ MIT - Voir le fichier LICENSE pour plus de détails.
 Ce générateur est conçu à des fins éducatives et de recherche. Pour des applications cryptographiques critiques, utilisez des générateurs certifiés comme ceux fournis par votre système d'exploitation.
 
 ---
-
-🎉 **Votre package Tych est maintenant prêt à être utilisé sur tous les systèmes !**
