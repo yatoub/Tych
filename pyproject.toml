@@ -1,0 +1,110 @@
+[project]
+name = "tych"
+version = "0.1.0"
+description = "Générateur de nombres pseudo-aléatoires basé sur la dynamique chaotique du double pendule"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Yatoub", email = "votre.email@example.com"}
+]
+license = {text = "MIT"}
+keywords = ["random", "chaos", "physics", "pendulum", "cryptography"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "matplotlib>=3.5.0",
+    "scipy>=1.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+tych = "tych.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yatoub/tych"
+Repository = "https://github.com/yatoub/tych.git"
+Documentation = "https://github.com/yatoub/tych#readme"
+"Bug Tracker" = "https://github.com/yatoub/tych/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tych"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.git",
+    "/.gitignore",
+    "/.venv",
+    "/test_*.py",
+    "/example.py",
+    "/simple_test.py",
+    "/install_and_test.py",
+    "/__pycache__",
+    "/*.png",
+    "/*.txt",
+]
+
+# Configuration pour uv
+[tool.uv]
+dev-dependencies = [
+    "pytest>=6.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+]
+
+[tool.uv.sources]
+
+# Configuration pytest
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests", 
+    "unit: marks tests as unit tests",
+    "requires_matplotlib: mark test as requiring matplotlib",
+    "requires_scipy: mark test as requiring scipy",
+    "requires_all_deps: mark test as requiring all dependencies",
+]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
