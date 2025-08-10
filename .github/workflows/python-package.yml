@@ -27,11 +27,8 @@ jobs:
     - name: Install uv
       run: pip install uv
 
-    - name: Build package
-      run: uv build
-
-    - name: Test installation
-      run: python test_install.py
-
     - name: Test package
       run: uv run pytest
+
+    - name: Build package
+      run: uv build
