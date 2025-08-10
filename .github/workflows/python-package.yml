@@ -33,7 +33,5 @@ jobs:
     - name: Test installation
       run: python test_install.py
 
-    - name: Publish to PyPI
-      run: uv publish dist/*
-      env:
-        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    - name: Test package
+      run: uv run pytest
