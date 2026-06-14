@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tych — Double Pendule Chaotique</title>
+  <link rel="stylesheet" href="/static/css/mocha.css" />
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"
+          integrity="sha384-7TVmlZWH60iKX5Uk7lSvQhjtcgw2tkFjuwLcXoRSR4zXTyWFJRm9aPAguMh7CIra"
+          crossorigin="anonymous"
+          defer></script>
+</head>
+<body>
+
+<header>
+  <span style="font-size:1.4rem">⚛</span>
+  <h1>Tych</h1>
+  <span class="dot">·</span>
+  <span class="subtitle">Générateur de nombres aléatoires — Double pendule chaotique</span>
+</header>
+
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+  <aside>
+
+    <!-- Génération -->
+    <section>
+      <div class="section-title">Génération</div>
+
+      <div class="field">
+        <label for="gen-n-slider">Nombre de valeurs</label>
+        <div class="field-row">
+          <input type="range" id="gen-n-slider" min="100" max="10000" step="100" value="1000" />
+          <span class="value-display" id="gen-n-val">1000</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="gen-pendulums">Pendules</label>
+        <div class="field-row">
+          <input type="range" id="gen-pendulums" min="1" max="5" step="1" value="3" />
+          <span class="value-display" id="gen-pendulums-val">3</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="gen-noise">Bruit</label>
+        <div class="field-row">
+          <input type="range" id="gen-noise" min="0" max="2" step="0.05" value="0.2" />
+          <span class="value-display" id="gen-noise-val">0.2</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-success btn-full" id="gen-run">
+          <span id="gen-spinner" class="spinner"></span>
+          Générer
+        </button>
+      </div>
+      <div class="status" id="gen-status">Prêt</div>
+    </section>
+
+    <hr style="border-color:var(--surface0)" />
+
+    <!-- Paramètres physiques -->
+    <section>
+      <div class="section-title">Physique</div>
+      <div class="physics-fields">
+          <div class="physics-group-label">Tiges</div>
+
+          <div class="field">
+            <label for="phys-l1">Longueur tige 1 <span class="unit">m</span></label>
+            <div class="field-row">
+              <input type="range" id="phys-l1" min="0.2" max="3.0" step="0.001" value="1.0" />
+              <input type="number" class="phys-num" id="phys-l1-num" min="0.2" max="3.0" step="0.001" value="1.000" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="phys-l2">Longueur tige 2 <span class="unit">m</span></label>
+            <div class="field-row">
+              <input type="range" id="phys-l2" min="0.2" max="3.0" step="0.001" value="1.0" />
+              <input type="number" class="phys-num" id="phys-l2-num" min="0.2" max="3.0" step="0.001" value="1.000" />
+            </div>
+          </div>
+
+          <div class="physics-group-label">Masses</div>
+
+          <div class="field">
+            <label for="phys-m1">Masse 1 <span class="unit">kg</span></label>
+            <div class="field-row">
+              <input type="range" id="phys-m1" min="0.1" max="5.0" step="0.001" value="1.0" />
+              <input type="number" class="phys-num" id="phys-m1-num" min="0.1" max="5.0" step="0.001" value="1.000" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="phys-m2">Masse 2 <span class="unit">kg</span></label>
+            <div class="field-row">
+              <input type="range" id="phys-m2" min="0.1" max="5.0" step="0.001" value="1.0" />
+              <input type="number" class="phys-num" id="phys-m2-num" min="0.1" max="5.0" step="0.001" value="1.000" />
+            </div>
+          </div>
+
+          <div class="physics-group-label">Environnement</div>
+
+          <div class="field">
+            <label for="phys-g">Gravité <span class="unit">m/s²</span></label>
+            <div class="field-row">
+              <input type="range" id="phys-g" min="0.5" max="30.0" step="0.001" value="9.81" />
+              <input type="number" class="phys-num" id="phys-g-num" min="0.5" max="30.0" step="0.001" value="9.810" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="phys-damping">Amortissement</label>
+            <div class="field-row">
+              <input type="range" id="phys-damping" min="0.900" max="1.000" step="0.001" value="0.999" />
+              <input type="number" class="phys-num" id="phys-damping-num" min="0.900" max="1.000" step="0.001" value="0.999" />
+            </div>
+          </div>
+
+          <button class="btn btn-sm btn-full" id="phys-reset"
+                  style="background:var(--surface0);color:var(--subtext0);margin-top:0.25rem">
+            Réinitialiser les valeurs par défaut
+          </button>
+      </div>
+    </section>
+
+    <hr style="border-color:var(--surface0)" />
+
+    <!-- Contrôles de l'animation -->
+    <section>
+      <div class="section-title">Animation</div>
+
+      <div class="actions">
+        <div style="display:flex;gap:0.4rem">
+          <button class="btn btn-secondary btn-sm" id="traj-play" style="flex:1" disabled>▶ Play</button>
+          <button class="btn btn-sm" id="traj-rewind" style="background:var(--surface0);color:var(--text);flex:1" disabled>↩</button>
+        </div>
+        <div class="field-row" style="margin-top:0.25rem">
+          <span class="speed-label">Vitesse</span>
+          <input type="range" id="traj-speed" min="1" max="8" step="1" value="1" style="flex:1" />
+          <span class="value-display" id="traj-speed-val">1×</span>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ── Main panel ──────────────────────────────────────────────────── -->
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-generate">📊 Génération</button>
+      <button class="tab-btn" data-tab="tab-eval">🔬 Évaluation</button>
+      <button class="tab-btn" data-tab="tab-sweep">🧭 Exploration</button>
+    </div>
+
+    <!-- Tab Génération : canvas + stats côte à côte -->
+    <div class="tab-panel active" id="tab-generate">
+      <div class="gen-split">
+
+        <!-- Colonne gauche : pendules -->
+        <div class="gen-pendulum-col">
+          <div class="gen-canvas-wrap" id="gen-canvas-wrap">
+            <div class="placeholder" id="gen-canvas-placeholder">
+              <span class="icon">⚛</span>
+              <span>Les pendules s'animeront<br>lors de la génération</span>
+            </div>
+            <canvas id="gen-canvas" class="pendulum-canvas" style="display:none"></canvas>
+          </div>
+        </div>
+
+        <!-- Colonne droite : stats + histogram + sample -->
+        <div class="gen-stats-col">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="label">Moyenne</div>
+              <div class="val accent-mauve" id="gen-mean">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Écart-type</div>
+              <div class="val accent-mauve" id="gen-std">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Min</div>
+              <div class="val" id="gen-min">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Max</div>
+              <div class="val" id="gen-max">—</div>
+            </div>
+          </div>
+
+          <div class="chart-box" id="gen-chart-placeholder"
+               style="display:flex;align-items:center;justify-content:center;color:var(--overlay0);font-size:0.82rem;min-height:220px">
+            Lancez une génération pour voir la distribution
+          </div>
+          <div class="chart-box" id="gen-chart" style="min-height:220px;display:none"></div>
+
+          <div class="chart-box">
+            <h3>Échantillon (50 premières valeurs)</h3>
+            <pre id="gen-sample"
+                 style="font-size:0.72rem;color:var(--subtext0);overflow:auto;max-height:160px;white-space:pre-wrap">—</pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab Évaluation -->
+    <div class="tab-panel" id="tab-eval">
+
+        <!-- Intro -->
+        <div class="lab-intro">
+          <p>
+            Génère une séquence avec les paramètres physiques actuels et la soumet à
+            <strong>quatre tests statistiques indépendants</strong>.
+            Chaque test mesure un aspect différent de la qualité de l'aléatoire.
+            Un bon générateur aléatoire doit passer tous les tests simultanément.
+          </p>
+          <div class="lab-intro-metrics">
+            <div class="metric-pill">
+              <span class="metric-pill-name">Uniformité</span>
+              <span class="metric-pill-desc">Chaque valeur entre 0 et 1 est-elle aussi probable qu'une autre ? Testé par Kolmogorov-Smirnov et χ².</span>
+            </div>
+            <div class="metric-pill">
+              <span class="metric-pill-name">Indépendance</span>
+              <span class="metric-pill-desc">Les valeurs successives sont-elles liées entre elles ? L'autocorrélation (ACF) et le test de runs détectent les motifs cachés.</span>
+            </div>
+            <div class="metric-pill">
+              <span class="metric-pill-name">Entropie</span>
+              <span class="metric-pill-desc">La séquence est-elle imprévisible ? L'entropie de Shannon mesure la diversité, l'ApEn mesure la complexité locale.</span>
+            </div>
+            <div class="metric-pill">
+              <span class="metric-pill-name">Moments</span>
+              <span class="metric-pill-desc">La moyenne (cible 0,5) et l'écart-type (cible 0,289 = 1/√12) correspondent-ils à une loi uniforme parfaite ?</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- En-tête : précision + bouton évaluer -->
+        <div class="lab-header">
+          <div class="precision-group" id="lab-precision-group">
+            <button class="precision-btn active" data-n="500">⚡ Rapide</button>
+            <button class="precision-btn" data-n="2000">⚖ Équilibrée</button>
+            <button class="precision-btn" data-n="8000">🔬 Fine</button>
+          </div>
+          <button class="btn btn-primary" id="lab-run">
+            <span id="lab-spinner" class="spinner"></span>
+            Évaluer
+          </button>
+          <div class="status" id="lab-status">Ajuste les paramètres physiques puis évalue</div>
+        </div>
+
+        <!-- Corps : 2 colonnes -->
+        <div class="lab-layout">
+
+          <!-- Colonne gauche : radar + score + sous-scores -->
+          <div class="lab-left">
+
+            <div class="score-card">
+              <div class="score-number" id="lab-score">—</div>
+              <div class="score-label">/ 100</div>
+              <div class="score-stars" id="lab-stars">
+                <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+              </div>
+            </div>
+
+            <!-- Radar chart -->
+            <div id="lab-radar" class="chart-hidden" style="height:220px"></div>
+
+            <div class="best-banner" id="lab-best" style="display:none">
+              🏆 Meilleur : <strong id="lab-best-score">—</strong>
+              <button class="btn btn-sm" id="lab-best-restore"
+                      style="background:var(--surface0);color:var(--text)">↩ Restaurer</button>
+            </div>
+
+            <div class="sub-scores-header">Détail des tests</div>
+            <div class="sub-scores">
+              <div class="sub-score-row">
+                <span class="sub-score-label">Uniformité <span class="sub-score-hint" title="Kolmogorov-Smirnov + chi-carré : vérifie que toutes les valeurs sont équiprobables">(KS + χ²)</span></span>
+                <div class="sub-score-track">
+                  <div class="sub-score-fill" id="fill-uniformite" style="width:0%"></div>
+                </div>
+                <span class="sub-score-pct" id="pct-uniformite">—</span>
+              </div>
+              <div class="sub-score-row">
+                <span class="sub-score-label">Indépendance <span class="sub-score-hint" title="Autocorrélation (ACF) + test de runs : détecte les dépendances entre valeurs consécutives">(ACF + runs)</span></span>
+                <div class="sub-score-track">
+                  <div class="sub-score-fill" id="fill-independance" style="width:0%"></div>
+                </div>
+                <span class="sub-score-pct" id="pct-independance">—</span>
+              </div>
+              <div class="sub-score-row">
+                <span class="sub-score-label">Entropie <span class="sub-score-hint" title="Entropie de Shannon (diversité globale) + entropie approximée (complexité locale) : mesure l'imprévisibilité">(Shannon + ApEn)</span></span>
+                <div class="sub-score-track">
+                  <div class="sub-score-fill" id="fill-entropie" style="width:0%"></div>
+                </div>
+                <span class="sub-score-pct" id="pct-entropie">—</span>
+              </div>
+              <div class="sub-score-row">
+                <span class="sub-score-label">Moments <span class="sub-score-hint" title="Moyenne cible 0,500 et écart-type cible 0,289 (= 1/√12) : propriétés analytiques d'une loi uniforme parfaite">(moy. + σ)</span></span>
+                <div class="sub-score-track">
+                  <div class="sub-score-fill" id="fill-moments" style="width:0%"></div>
+                </div>
+                <span class="sub-score-pct" id="pct-moments">—</span>
+              </div>
+            </div>
+
+            <div class="hint-card" id="lab-hint" style="display:none"></div>
+
+            <div class="eval-result-desc" id="eval-desc"></div>
+
+          </div>
+
+          <!-- Colonne droite : histogramme + ACF + spectre + historique -->
+          <div class="lab-right">
+
+            <div class="chart-box" id="lab-chart-placeholder"
+                 style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--overlay0);font-size:0.82rem">
+              Lance une évaluation pour voir la distribution
+            </div>
+            <div class="chart-box" id="lab-chart" style="min-height:180px;display:none"></div>
+
+            <div class="charts-grid" style="margin-top:0.5rem">
+              <div class="chart-box chart-hidden" id="lab-acf-box">
+                <h3>Autocorrélation (ACF)</h3>
+                <p class="chart-caption">Les barres doivent rester dans les lignes rouges (±5%) pour confirmer l'indépendance temporelle.</p>
+                <div id="lab-acf" style="height:160px"></div>
+              </div>
+              <div class="chart-box chart-hidden" id="lab-spectrum-box">
+                <h3>Spectre de puissance</h3>
+                <p class="chart-caption">Un spectre plat (bruit blanc) indique qu'aucune fréquence n'est sur-représentée.</p>
+                <div id="lab-spectrum" style="height:160px"></div>
+              </div>
+            </div>
+
+            <div class="chart-box" style="padding:0.75rem;margin-top:0.5rem">
+              <h3>Historique de session</h3>
+              <div class="history-list" id="lab-history">
+                <div style="color:var(--overlay0);font-size:0.78rem;padding:0.5rem 0">Aucune évaluation</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    <!-- Tab Exploration -->
+    <div class="tab-panel" id="tab-sweep">
+
+        <!-- Intro -->
+        <div class="lab-intro">
+          <p>
+            Choisissez un <strong>paramètre physique</strong> et une plage de valeurs.
+            Le système génère automatiquement plusieurs séquences en faisant varier ce paramètre
+            et trace l'évolution du score de qualité. Vous pouvez ainsi trouver la valeur optimale
+            sans tâtonner manuellement.
+          </p>
+          <div class="sweep-guide">
+            <div class="sweep-guide-item">
+              <span class="sweep-guide-key">Bruit</span>
+              <span class="sweep-guide-val">Bruit gaussien ajouté à l'état du pendule. Trop faible → séquence trop régulière. Trop fort → dégrade l'uniformité.</span>
+            </div>
+            <div class="sweep-guide-item">
+              <span class="sweep-guide-key">Pendules</span>
+              <span class="sweep-guide-val">Nombre de systèmes chaotiques couplés. Plus de pendules = meilleur mélange des états, mais calcul plus lent.</span>
+            </div>
+            <div class="sweep-guide-item">
+              <span class="sweep-guide-key">Masses / Longueurs</span>
+              <span class="sweep-guide-val">Modifier ces rapports (m1 ≠ m2, l1 ≠ l2) amplifie la sensibilité aux conditions initiales = plus de chaos.</span>
+            </div>
+            <div class="sweep-guide-item">
+              <span class="sweep-guide-key">Amortissement</span>
+              <span class="sweep-guide-val">Coefficient de freinage (0,9–1,0). Près de 1,0 = pendule presque conservatif, trajectoire chaotique longue durée.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lab-header" style="flex-wrap:wrap;gap:0.5rem">
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <label style="font-size:0.82rem;color:var(--subtext0)">Paramètre</label>
+            <select id="sweep-param" class="sweep-select">
+              <option value="noise">Bruit</option>
+              <option value="pendulums">Pendules</option>
+              <option value="m1">Masse 1</option>
+              <option value="m2">Masse 2</option>
+              <option value="l1">Longueur 1</option>
+              <option value="l2">Longueur 2</option>
+              <option value="g">Gravité</option>
+              <option value="damping">Amortissement</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem">
+            <label style="font-size:0.82rem;color:var(--subtext0)">De</label>
+            <input type="number" id="sweep-min" class="sweep-num" value="0.0" step="0.1" />
+            <label style="font-size:0.82rem;color:var(--subtext0)">à</label>
+            <input type="number" id="sweep-max" class="sweep-num" value="1.0" step="0.1" />
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem">
+            <label style="font-size:0.82rem;color:var(--subtext0)">Pas</label>
+            <input type="range" id="sweep-steps" min="3" max="15" step="1" value="8" style="width:80px" />
+            <span id="sweep-steps-val" style="font-size:0.82rem;color:var(--text)">8</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem">
+            <label style="font-size:0.82rem;color:var(--subtext0)">n/point</label>
+            <select id="sweep-n" class="sweep-select">
+              <option value="300">300 (rapide)</option>
+              <option value="800" selected>800</option>
+              <option value="2000">2000 (précis)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="sweep-run">
+            <span id="sweep-spinner" class="spinner"></span>
+            Explorer
+          </button>
+          <div class="status" id="sweep-status">Configure un sweep puis lance</div>
+        </div>
+
+        <div class="sweep-result-desc" id="sweep-desc"></div>
+
+        <div class="chart-box" id="sweep-chart-placeholder"
+             style="min-height:300px;display:flex;align-items:center;justify-content:center;color:var(--overlay0);font-size:0.82rem">
+          Lance une exploration pour voir l'effet du paramètre sur la qualité
+        </div>
+        <div class="chart-box" id="sweep-chart" style="min-height:300px;display:none">
+          <div id="sweep-plot" style="height:300px"></div>
+        </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

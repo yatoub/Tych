@@ -1,264 +1,197 @@
 # Tych
 
-Tych est un package Python pour la génération de nombres pseudo-aléatoires basée sur la dynamique chaotique du double pendule. Ce générateur exploite la sensibilité aux conditions initiales des systèmes chaotiques pour produire des séquences de nombres apparemment aléatoires.
+Générateur de nombres pseudo-aléatoires basé sur la dynamique chaotique du double pendule.
 
-## Fonctionnalités
+Tych exploite la sensibilité extrême aux conditions initiales des systèmes hamiltoniens non-linéaires pour produire des séquences de nombres uniformément distribués dans [0, 1], avec un exposant de Lyapunov positif qui garantit la divergence exponentielle des trajectoires.
 
-- **Générateur basé sur le chaos physique** : Utilise la dynamique du double pendule pour générer des nombres pseudo-aléatoires
-- **Comparaison statistique** : Outils pour comparer la qualité de différents générateurs de nombres aléatoires
-- **Interface en ligne de commande** : Utilisation facile via des commandes CLI
-- **Analyses graphiques** : Génération automatique de graphiques pour l'analyse statistique
+---
 
 ## Installation
 
-### Prérequis
-
-- **Python** >= 3.8 (recommandé 3.9+)
-- **numpy** >= 1.24.0
-- **matplotlib** >= 3.10.5 (pour les graphiques de comparaison)
-- **scipy** >= 1.16.1 (pour les tests statistiques)
-
-### Installation du package
-
-1. **Naviguez vers le dossier du projet :**
-   ```bash
-   # Unix/Linux/macOS
-   cd /path/to/Tych
-   
-   # Windows
-   cd C:\path\to\Tych
-   ```
-
-2. **Créez et activez un environnement virtuel (recommandé) :**
-   ```bash
-   # Création de l'environnement virtuel
-   python -m venv .venv
-   
-   # Activation - Unix/Linux/macOS
-   source .venv/bin/activate
-   
-   # Activation - Windows PowerShell
-   .venv\Scripts\Activate.ps1
-   
-   # Activation - Windows Command Prompt
-   .venv\Scripts\activate.bat
-   ```
-
-3. **Installez le package en mode développement :**
-   ```bash
-   pip install -e .
-   ```
-
-   Ou installation des dépendances uniquement :
-   ```bash
-   pip install matplotlib scipy numpy
-   ```
-
-## Utilisation
-
-### 1. Interface en ligne de commande
-
 ```bash
-# Aide générale
-python main.py -h
+# Dépendances de base (génération + statistiques)
+pip install tych
 
-# Générer 100 nombres aléatoires
-python main.py generate -n 100
-
-# Sauvegarder dans un fichier
-python main.py generate -n 1000 -o mes_nombres.txt
-
-# Comparer avec d'autres générateurs
-python main.py compare -n 5000
-
-# Paramètres avancés
-python main.py generate -n 1000 --pendulums 5 --noise 0.3
+# Avec l'interface web
+pip install 'tych[web]'
 ```
 
-### 2. Utilisation en Python
+Prérequis : Python ≥ 3.9, numpy, scipy.
+
+---
+
+## Utilisation rapide
+
+### Python
 
 ```python
-# Import du package
 from tych import double_pendulum_random_list
 
-# Génération simple
-nombres = double_pendulum_random_list(n=100)
-print(f"Généré {len(nombres)} nombres")
-print(f"Échantillon: {nombres[:5]}")
+# Génération simple — retourne une liste de float dans [0, 1]
+nombres = double_pendulum_random_list(n=1000)
 
-# Avec paramètres personnalisés
-nombres_custom = double_pendulum_random_list(
-    n=500,           # Nombre de valeurs
-    n_pendulums=5,   # Nombre de pendules
-    noise_level=0.3  # Niveau de bruit
+# Paramètres physiques personnalisés
+nombres = double_pendulum_random_list(
+    n=5000,
+    n_pendulums=5,   # pendules couplés — plus = plus de chaos
+    noise_level=0.3, # bruit gaussien ajouté à l'état
+    m1=1.2, m2=0.8,  # masses (kg)
+    l1=1.0, l2=1.5,  # longueurs de tige (m)
+    g=9.81,          # gravité (m/s²)
+    damping=0.999,   # coefficient d'amortissement
 )
-
-# Comparaison des générateurs
-from tych import compare_random_generators
-results = compare_random_generators(n=10000)
-print(f"KS statistic: {results['ks_statistic']}")
 ```
 
-## Modules
+### Évaluation de la qualité
 
-### `tych.pendulum`
-Contient le générateur principal basé sur le double pendule chaotique.
+```python
+from tych import compute_quality_score
 
-**Fonction principale :**
-- `double_pendulum_random_list(n, n_pendulums, noise_level)` : Génère une liste de nombres pseudo-aléatoires
+score = compute_quality_score(nombres)
+print(score["global"])          # score global [0–100]
+print(score["uniformite"])      # KS + χ² — distribution uniforme
+print(score["independance"])    # ACF + runs test — absence de corrélations
+print(score["entropie"])        # Shannon + ApEn — imprévisibilité
+print(score["moments"])         # moyenne (cible 0.5) et σ (cible 1/√12)
+```
 
-**Paramètres du générateur :**
-- **n** : Nombre de valeurs à générer
-- **n_pendulums** : Plus il y a de pendules, plus le chaos est complexe (défaut: 3)
-- **noise_level** : Bruit ajouté pour casser les corrélations (défaut: 0.01)
+### Exposant de Lyapunov
 
-### `tych.comparison`
-Outils pour comparer et analyser statistiquement différents générateurs.
+```python
+from tych import compute_lyapunov
 
-**Fonction principale :**
-- `compare_random_generators()` : Compare le générateur Tych avec `/dev/urandom`
+lya = compute_lyapunov(m1=1.0, m2=1.0, l1=1.0, l2=1.0, g=9.81, damping=0.999)
+# λ > 0 → chaos déterministe confirmé
+print(f"λ = {lya:.4f} bits/step")
+```
 
-**Analyses incluses :**
-- Test de Kolmogorov-Smirnov
-- Histogrammes et estimations de densité par noyau (KDE)
-- QQ-plots pour l'analyse de distribution
+### CLI
+
+```bash
+# Générer des nombres
+python main.py generate -n 1000
+python main.py generate -n 5000 --pendulums 5 --noise 0.3 -o sortie.txt
+
+# Interface web interactive
+python main.py serve
+python main.py serve --port 8080 --reload
+```
+
+---
+
+## Interface web
+
+```bash
+python main.py serve
+# → http://127.0.0.1:8000
+```
+
+L'interface propose trois onglets :
+
+**Génération** — anime les pendules en temps réel et affiche la distribution des nombres produits.
+
+**Évaluation** — soumet une séquence à quatre tests statistiques indépendants et retourne un score /100 avec un radar chart, un histogramme, l'autocorrélation (ACF) et le spectre de puissance (FFT).
+
+**Exploration** — fait varier un paramètre physique (bruit, nombre de pendules, masses, longueurs, gravité, amortissement) sur une plage et trace la courbe score vs paramètre pour trouver la configuration optimale.
+
+---
 
 ## Algorithme
 
-Le générateur Tych utilise :
+1. **Intégration RK4** — équations du mouvement du double pendule (θ₁, θ₂, ω₁, ω₂)
+2. **Pendules couplés** — `n_pendulums` systèmes simulés avec des conditions initiales distinctes
+3. **Extraction** — les angles θ₂ de chaque pendule sont normalisés modulo 2π dans [0, 1]
+4. **Bruit gaussien** — perturbation de l'état à chaque pas pour briser les corrélations résiduelles
+5. **Hachage SHA-256** — les sorties sont passées par SHA-256 pour garantir l'uniformité finale
+6. **Permutation** — mélange aléatoire de l'ensemble des valeurs produites
 
-1. **Simulation physique** : Équations du mouvement du double pendule
-2. **Systèmes multiples** : Plusieurs pendules simulés en parallèle
-3. **Mélange chaotique** : Combinaison des variables d'état (angles et vitesses)
-4. **Hachage cryptographique** : SHA-256 pour casser les corrélations résiduelles
-5. **Permutation finale** : Mélange aléatoire des résultats
+---
 
-## Qualité de l'aléatoire
+## Métriques de qualité (`tych.statistics`)
 
-Le générateur a été testé pour :
-- Distribution uniforme des valeurs
-- Absence de corrélations périodiques
-- Comparaison statistique avec des générateurs standards
+| Catégorie | Tests | Poids |
+|-----------|-------|-------|
+| Uniformité | Kolmogorov-Smirnov, χ² | 30 % |
+| Indépendance | ACF (lags 1–20), Wald-Wolfowitz runs test | 30 % |
+| Entropie | Shannon (H/H_max), Approximate Entropy (ApEn) | 25 % |
+| Moments | Moyenne (cible 0,500), σ (cible 1/√12 ≈ 0,2887) | 15 % |
 
-## Développement
+---
 
-```bash
-# Installation en mode développement
-pip install -e ".[dev]"
+## API REST (interface web)
 
-# Tests
-pytest
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/api/generate` | Génère n nombres, retourne histogramme + stats |
+| POST | `/api/quality` | Score qualité complet (ACF, spectre, entropie…) |
+| POST | `/api/lab/sweep` | Courbe score vs paramètre physique |
+| POST | `/api/trajectory` | Trajectoires pour l'animation canvas |
+| POST | `/api/compare` | Comparaison avec /dev/urandom (KS, KDE, QQ-plot) |
 
-# Formatage du code
-black tych/
-
-# Vérification du style
-flake8 tych/
-```
-
-## Commandes utiles
-
-```bash
-# Vérifier l'installation
-python -c "from tych import double_pendulum_random_list; print('Installation OK')"
-
-# Test rapide du générateur
-python -c "from tych.pendulum import double_pendulum_random_list; print('Échantillon:', double_pendulum_random_list(5))"
-
-# Générer et analyser
-python main.py generate -n 10000 -o analyse.txt
-python main.py compare -n 10000 -o comparaison.png
-
-# Vérifier la version Python
-python --version
-
-# Lister les packages installés
-pip list | grep tych  # Unix/Linux/macOS
-pip list | findstr tych  # Windows
-```
-
-## Notes par système d'exploitation
-
-### 🐧 **Linux/Ubuntu/Debian**
-```bash
-# Installation des dépendances système (si nécessaire)
-sudo apt-get update
-sudo apt-get install python3 python3-pip python3-venv
-
-# Utilisation
-python3 main.py generate -n 100
-```
-
-### 🍎 **macOS**
-```bash
-# Avec Homebrew (recommandé)
-brew install python
-
-# Ou utiliser python3 explicitement
-python3 main.py generate -n 100
-```
-
-### 🪟 **Windows**
-```powershell
-# PowerShell
-python main.py generate -n 100
-
-# Ou avec py launcher
-py main.py generate -n 100
-```
-
-## Résolution de problèmes
-
-### Problèmes d'import
-```bash
-# Vérifier le PYTHONPATH
-python -c "import sys; print(sys.path)"
-
-# Réinstaller en mode développement
-pip uninstall tych
-pip install -e .
-```
-
-### Problèmes de dépendances
-```bash
-# Installer les dépendances manuellement
-pip install numpy matplotlib scipy
-
-# Mise à jour des packages
-pip install --upgrade numpy matplotlib scipy
-```
-
-### Problèmes de permissions (Unix/Linux)
-```bash
-# Utiliser --user pour l'installation locale
-pip install --user -e .
-
-# Ou modifier les permissions du dossier
-sudo chown -R $USER:$USER .
-```
+---
 
 ## Structure du projet
 
 ```
-Tych/
-├── tych/                    # Package principal
-│   ├── __init__.py         # Point d'entrée du package
-│   ├── pendulum.py         # Générateur basé sur le double pendule
-│   ├── comparison.py       # Outils de comparaison statistique
-│   └── cli.py             # Interface en ligne de commande
-├── main.py                # Script principal
-├── example.py             # Exemple d'utilisation
-├── pyproject.toml         # Configuration du package
-├── README.md              # Documentation
-└── uv.lock               # Verrouillage des dépendances
+tych/
+├── __init__.py         # API publique
+├── pendulum.py         # Générateur RK4 + simulation de trajectoires
+├── comparison.py       # Comparaison avec /dev/urandom (KS, KDE, QQ)
+├── statistics.py       # Métriques avancées : ACF, runs, entropie, Lyapunov
+├── cli.py              # Point d'entrée de la commande `tych`
+└── web/
+    ├── app.py          # API FastAPI
+    └── static/
+        ├── index.html
+        ├── css/mocha.css
+        └── js/
+            ├── app.js
+            ├── charts.js
+            └── pendulum.js
+main.py                 # CLI via `python main.py`
+pyproject.toml
 ```
 
-## Licence
+---
 
-MIT - Voir le fichier LICENSE pour plus de détails.
+## Docker
+
+```bash
+# Build
+docker build -t tych .
+
+# Lancer l'interface web sur http://localhost:8000
+docker run -p 8000:8000 tych
+
+# Port personnalisé
+docker run -p 9000:8000 tych
+```
+
+L'image est basée sur `python:3.12-slim`, installe l'extra `[web]` (FastAPI + uvicorn) et expose le port 8000. Le serveur écoute sur `0.0.0.0` pour être accessible depuis l'hôte.
+
+---
+
+## Développement
+
+```bash
+# Installer avec toutes les dépendances
+pip install -e '.[web,dev]'
+
+# Tests
+pytest
+
+# Interface web avec rechargement automatique
+python main.py serve --reload
+```
+
+---
 
 ## Avertissement
 
-Ce générateur est conçu à des fins éducatives et de recherche. Pour des applications cryptographiques critiques, utilisez des générateurs certifiés comme ceux fournis par votre système d'exploitation.
+Tych est conçu à des fins éducatives et de recherche. Ne pas utiliser pour des applications cryptographiques critiques — préférer les générateurs certifiés du système d'exploitation (`os.urandom`, `secrets`).
 
 ---
+
+## Licence
+
+MIT

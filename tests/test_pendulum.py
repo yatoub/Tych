@@ -87,10 +87,14 @@ class TestDoublePendulumRandomList:
                 with patch('numpy.random.normal') as mock_normal:
                     with patch('numpy.random.shuffle') as mock_shuffle:
                         # Configuration des mocks pour des valeurs déterministes
+                        # np.full(1, v) renvoie un array shape=(1,) cassé avec numpy 2.x;
+                        # on retourne un scalaire numpy quand size est None.
                         mock_uniform.side_effect = lambda low, high, size=None: \
-                            np.full(size if size else 1, (low + high) / 2)
+                            np.float64((low + high) / 2) if size is None \
+                            else np.full(size, (low + high) / 2)
                         mock_normal.side_effect = lambda loc, scale, size=None: \
-                            np.full(size if size else 1, loc)
+                            np.float64(loc) if size is None \
+                            else np.full(size, loc)
                         mock_shuffle.return_value = None  # Pas de mélange
                         
                         numbers1 = double_pendulum_random_list(n=n)

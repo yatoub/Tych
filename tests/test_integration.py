@@ -38,7 +38,7 @@ class TestPackageIntegration:
     
     def test_package_metadata(self):
         """Test des métadonnées du package."""
-        assert tych.__version__ == "0.1.0"
+        assert tych.__version__ == "0.1.1"
         assert isinstance(tych.__author__, str)
         assert isinstance(tych.__email__, str)
         
@@ -230,7 +230,7 @@ class TestDocumentationConsistency:
         # Vérifier les sections importantes
         assert "[project]" in content
         assert "name = \"tych\"" in content
-        assert "version = \"0.1.0\"" in content
+        assert "version = \"0.1.1\"" in content
         assert "[build-system]" in content
 
 
